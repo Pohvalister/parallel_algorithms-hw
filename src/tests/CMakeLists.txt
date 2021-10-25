@@ -1,0 +1,11 @@
+project(parallel_qsort_tests)
+
+cmake_minimum_required(VERSION 3.16)
+
+add_subdirectory(./googletest)
+
+
+add_executable(run_tests
+        run_tests.cpp
+        )
+target_link_libraries(run_tests pthread gtest gtest_main)#cilkrts
