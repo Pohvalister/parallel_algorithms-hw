@@ -37,9 +37,9 @@ T sequential_scan(std::vector<T> & data){//exclusive_inplace scan
 // qsorting funcs
 template<typename T>
 static std::size_t partition(std::vector<T>& data, std::size_t start, std::size_t end){
-	T dividor = data[(start + end) /2];
+	T dividor = data[start];
 	std::size_t i = start, j = end;
-	while (i < j){
+	while (i <= j){
 		while (data[i]< dividor)
 			i++;
 		while (data[j] > dividor)

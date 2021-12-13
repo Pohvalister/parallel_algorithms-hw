@@ -6,8 +6,12 @@ add_subdirectory(./googletest)
 
 #include_directories(../parallel_tools)
 
-add_executable(run_tests
+add_executable(run_primitives_tests
         run_primitives_tests.cpp
-        sequentional_tools.h
         )
-target_link_libraries(run_tests pthread gtest gtest_main)
+
+add_executable(run_qsort_tests
+        qsort_tests.cpp
+        )
+target_link_libraries(run_primitives_tests pthread gtest gtest_main)
+target_link_libraries(run_qsort_tests pthread gtest gtest_main)

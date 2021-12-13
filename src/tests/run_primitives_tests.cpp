@@ -26,7 +26,7 @@ protected:
 };
 
 TEST_F(basic_tests, parallel_filter){
-	std::function<bool(const int&)> greater = [](const int& val){return val > 0};
+	std::function<bool(const int&)> greater = [](const int& val){return val > 0;};
 	std::vector<int> parallel_output = parallel_filter(input, greater);
 	std::vector<int> sequential_output = sequential_filter(input, greater);
 
@@ -66,7 +66,7 @@ TEST_F(basic_tests, parallel_scan){
 TEST_F(basic_tests, empty_vector){
 	std::vector<int> input(0);
 	std::function<std::string(const int&)> toStrFunc(toStr<int>);
-	std::function<bool(const int&)> greater = [](const int& val){return val > 0};
+	std::function<bool(const int&)> greater = [](const int& val){return val > 0;};
 
 	ASSERT_EQ(parallel_filter(input, greater).size(), 0);
 	ASSERT_EQ(parallel_map(input, toStrFunc).size(), 0);
