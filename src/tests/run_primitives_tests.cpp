@@ -6,56 +6,19 @@
 #include "parallel_tools/parallel_filter.h"
 #include "parallel_tools/parallel_map.h"
 #include "parallel_tools/parallel_scan.h"
+#include "sequentional_tools.h"
 
 // preparations
 template<typename T>
-std::vector<T> sequential_filter(const std::vector<T>& data, bool(*predicate)(const T&)){
-	std::vector<T> result;
-	for (const T & value : data)
-		if (predicate(value))
-			result.push_back(value);
-
-	return result;
-}
-
-template<typename TIn, typename TOut>
-std::vector<TOut> sequential_map(const std::vector<TIn> &data, std::function<TOut(const TIn&)>func){
-	std::vector<TOut> result;
-	for (const TIn & value : data)
-		result.push_back(func(value));
-
-	return result;
-}
-
-template<typename T>
-T sequential_scan(std::vector<T> & data){//exclusive_inplace scan
-	if (data.empty())
-		return 0;
-
-	T sum = 0;
-	for (std::size_t i = 0; i < data.size(); i++){
-		std::swap(sum, data[i]);
-		sum += data[i];
-	}
-	return sum;
-}
-
-template<typename T, T Comp>
-bool greater(const T& val){
-	return val > Comp;
-}
-
-template<typename T>
-std::string toStr(const T& val){
+static std::string toStr(const T& val){
 	return std::to_string(val);
 }
-
 
 // BASIC testings
 class basic_tests : public ::testing::Test{
 protected:
 	void SetUp(){
-		const int AMOUNT = 100;
+		const int AMOUNT = 101;
 		for (size_t i = 0; i < AMOUNT; i++)
 			input.push_back(random());
 	}
@@ -63,8 +26,9 @@ protected:
 };
 
 TEST_F(basic_tests, parallel_filter){
-	std::vector<int> parallel_output = parallel_filter(input, greater<int, 0>);
-	std::vector<int> sequential_output = sequential_filter(input, greater<int, 0>);
+	std::function<bool(const int&)> greater = [](const int& val){return val > 0};
+	std::vector<int> parallel_output = parallel_filter(input, greater);
+	std::vector<int> sequential_output = sequential_filter(input, greater);
 
 	ASSERT_EQ(parallel_output.size(), sequential_output.size());
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
@@ -99,15 +63,19 @@ TEST_F(basic_tests, parallel_scan){
 
 }
 
-
 TEST_F(basic_tests, empty_vector){
 	std::vector<int> input(0);
 	std::function<std::string(const int&)> toStrFunc(toStr<int>);
+	std::function<bool(const int&)> greater = [](const int& val){return val > 0};
 
-	ASSERT_EQ(parallel_filter(input, greater<int, 0>).size(), 0);
+	ASSERT_EQ(parallel_filter(input, greater).size(), 0);
 	ASSERT_EQ(parallel_map(input, toStrFunc).size(), 0);
 	int last;
 	ASSERT_EQ(parallel_scan(input), 0);
+}
+
+TEST(stress_tests, parallel_smth){
+	ASSERT_EQ(1, 1);
 }
 
 // STRESS testing

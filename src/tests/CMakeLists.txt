@@ -8,6 +8,6 @@ add_subdirectory(./googletest)
 
 add_executable(run_tests
         run_primitives_tests.cpp
-
+        sequentional_tools.h
         )
 target_link_libraries(run_tests pthread gtest gtest_main)
