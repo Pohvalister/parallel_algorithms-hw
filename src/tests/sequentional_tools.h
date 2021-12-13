@@ -14,10 +14,10 @@ std::vector<T> sequential_filter(const std::vector<T>& data, std::function <bool
 
 template<typename TIn, typename TOut>
 std::vector<TOut> sequential_map(const std::vector<TIn> &data, std::function<TOut(const TIn&)>func){
-	std::vector<TOut> result(data.size());//std::vector<TOut> result;
+	std::vector<TOut> result;
 	for(std::size_t i = 0; i < data.size(); i++){
-		result[i] = func(data[i]);
-	}//result.push_back(func(value));
+		result.push_back(func(data[i]));
+	}
 
 	return result;
 }
@@ -59,8 +59,9 @@ static void recur_sequential_qsort(std::vector<T>& data, std::size_t start, std:
 	if (start >= end)
 		return;
 	std::size_t split = partition(data, start, end);
-	recur_sequential_qsort(data, start, split);
+	recur_sequential_qsort(data, start, split); //cilk_spawn here doubles speed
 	recur_sequential_qsort(data, split + 1, end);
+	//cilk_sync;
 }
 
 template<typename T>

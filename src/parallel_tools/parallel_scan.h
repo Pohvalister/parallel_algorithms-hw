@@ -7,15 +7,19 @@
 
 // exclusive inplace parallel scan для части массива длины степени 2-ки, начало с позиции start, возвращает сумму всех элементов
 template<typename T>
-T parallel_scan_pow2(std::vector<T> & data, const std::size_t & start, const std::size_t & pow2){
-	std::size_t end = start + (1<<pow2);
+T parallel_scan_pow2(std::vector<T> & data, const int & start, const std::size_t & pow2){
+	int end = start + (1<<pow2);
 	//upwards
 	for (std::size_t i = 1; i <= pow2; i++){
 		size_t jump = 1<<i;
 #pragma grainsize 1
-		cilk_for(std::size_t j = start + jump; j <= end; j += jump){
+		cilk_for(int j = start + jump; j <= end; j += jump){
 			data[j - 1] += data[j - jump/2 - 1];
 		}
+//		cilk_for(std::size_t j = 1; j <= (end - start)/jump; j++){
+//			std::size_t position = start + j*jump;
+//			data[position - 1] += data[position - jump/2 - 1];
+//		}
 	}
 	T total = data[end - 1];
 	data[end - 1] = 0;
@@ -23,7 +27,7 @@ T parallel_scan_pow2(std::vector<T> & data, const std::size_t & start, const std
 	for (std::size_t i = pow2; i > 0; i--){
 		size_t jump = 1<<i;
 #pragma grainsize 1
-		cilk_for(std::size_t j = start + jump; j <= end; j+=jump){
+		cilk_for(int j = start + jump; j <= end; j+=jump){
 			std::swap(data[j - 1], data[j - jump/2 - 1]);
 			data[j - 1] += data[j - jump/2 - 1];
 		}

@@ -113,11 +113,12 @@ int calc_time(std::vector<T> data, std::function<void(std::vector<T>&)> mapper){
 }
 
 TEST(benchmarking, map){
-	const std::size_t AMOUNT = 100000000;
+	std::cout<< "Cilk workers: " << __cilkrts_get_nworkers() << '\n';
+	const std::size_t AMOUNT = 10000000;
 	srand(time(0));
 
 	std::function<int(const int&)> inc = [](const int& val){return val + 1;};
-	const std::size_t ITER = 5;
+	const std::size_t ITER = 10;
 	for (std::size_t i = 0; i < ITER; i++){
 		std::vector<int> data1;
 		for (std::size_t i = 0; i < AMOUNT; i++)

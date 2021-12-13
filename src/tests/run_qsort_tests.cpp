@@ -61,6 +61,7 @@ int calc_time(std::vector<T> data, std::function<void(std::vector<T>&)> sorter){
 }
 
 TEST(intensive_tests, benchmarking){
+	std::cout<< "Cilk workers: " << __cilkrts_get_nworkers() << '\n';
 	const std::size_t AMOUNT = 10000000;
 	srand(time(0));
 
