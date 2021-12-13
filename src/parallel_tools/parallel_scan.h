@@ -5,45 +5,48 @@
 #include <vector>
 #include <cstdint>
 
+// exclusive inplace parallel scan для части массива длины степени 2-ки, начало с позиции start, возвращает сумму всех элементов
 template<typename T>
-std::vector<T> parallel_scan(const std::vector<T> & data, T& lastVal){//exclusive_inplace scan
-
-    std::size_t result_size = 1;
-    int pow_counter = 0;
-    while (result_size < data.size())
-	{
-		pow_counter++;
-		result_size *= 2;
+T parallel_scan_pow2(std::vector<T> & data, const std::size_t & start, const std::size_t & pow2){
+	std::size_t end = start + (1<<pow2);
+	//upwards
+	for (std::size_t i = 1; i <= pow2; i++){
+		size_t jump = 1<<i;
+#pragma grainsize 1
+		cilk_for(std::size_t j = start + jump; j <= end; j += jump){
+			data[j - 1] += data[j - jump/2 - 1];
+		}
 	}
-    std::vector<T> result (result_size);// power of 2
-
+	T total = data[end - 1];
+	data[end - 1] = 0;
+	//downwards
+	for (std::size_t i = pow2; i > 0; i--){
+		size_t jump = 1<<i;
 #pragma grainsize 1
-    cilk_for(std::size_t i = 0; i < result_size; i++){
-		result[i] = (i < data.size() ? data[i] : 0);
+		cilk_for(std::size_t j = start + jump; j <= end; j+=jump){
+			std::swap(data[j - 1], data[j - jump/2 - 1]);
+			data[j - 1] += data[j - jump/2 - 1];
+		}
 	}
-    //upwards
-    for (std::size_t pow = 1; pow <= pow_counter; pow++) {
-        int step = 1<<pow;
-#pragma grainsize 1
-        cilk_for(int i = step; i <= result_size; i = i + step){
-            result[i] = result[i - 1] + result[i + step/2 - 1];// -1 because begin with i = 0
-        }
-    }
+	return total;
+}
 
-    lastVal = result[result_size - 1];
-    result[result_size - 1] = 0;
-    //downwards
-    for (std::size_t pow = pow_counter; pow > 0; pow--){
-        int step = 1<<pow;
-#pragma grainsize 1
-        cilk_for(std::size_t i = step; i <= result_size; i= i + step){
-            std::swap(result[i-1], result[i - step/2 - 1]);
-            result[i-1] += result[i - step/2 - 1];
-        }
-    }
+template<typename T>
+T parallel_scan(std::vector<T> & data){//exclusive_inplace scan
+	std::size_t bytes_count = sizeof(data.size());
 
-    result.resize(data.size()); //removing power of 2
-    return result;
+	T accumulated = 0;
+	std::size_t offset = 0;
+	for(std::size_t i = 0; i < bytes_count; i++)
+		if (data.size() & 1 << i){
+			T tmp = accumulated;
+			data[offset] += accumulated;
+			accumulated = parallel_scan_pow2(data, offset, i);
+			data[offset] = tmp;
+			offset += 1<<i;
+		}
+
+    return accumulated;
 }
 
 

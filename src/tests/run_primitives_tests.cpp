@@ -19,7 +19,7 @@ std::vector<T> sequential_filter(const std::vector<T>& data, bool(*predicate)(co
 }
 
 template<typename TIn, typename TOut>
-std::vector<TOut> sequential_map(const std::vector<TIn> &data, TOut(*func)(const TIn &)){
+std::vector<TOut> sequential_map(const std::vector<TIn> &data, std::function<TOut(const TIn&)>func){
 	std::vector<TOut> result;
 	for (const TIn & value : data)
 		result.push_back(func(value));
@@ -28,30 +28,28 @@ std::vector<TOut> sequential_map(const std::vector<TIn> &data, TOut(*func)(const
 }
 
 template<typename T>
-std::vector<T> sequential_scan(const std::vector<T> & data, T& lastVal){//exclusive_inplace scan
-	std::vector<T> result;
-	if (data.empty()){
-		lastVal = 0;
-		return result;
-	}
+T sequential_scan(std::vector<T> & data){//exclusive_inplace scan
+	if (data.empty())
+		return 0;
+
 	T sum = 0;
-	for (const T& value : data){
-		result.push_back(sum);
-		sum += value;
+	for (std::size_t i = 0; i < data.size(); i++){
+		std::swap(sum, data[i]);
+		sum += data[i];
 	}
-	lastVal = sum;
-	return result;
+	return sum;
 }
 
 template<typename T, T Comp>
 bool greater(const T& val){
-	return val < Comp;
+	return val > Comp;
 }
 
 template<typename T>
 std::string toStr(const T& val){
 	return std::to_string(val);
 }
+
 
 // BASIC testings
 class basic_tests : public ::testing::Test{
@@ -71,27 +69,34 @@ TEST_F(basic_tests, parallel_filter){
 	ASSERT_EQ(parallel_output.size(), sequential_output.size());
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
+
 }
 
 TEST_F(basic_tests, parallel_map){
 	std::function<std::string(const int&)> toStrFunc(toStr<int>);
 	std::vector<std::string> parallel_output = parallel_map(input, toStrFunc);
-	std::vector<std::string> sequential_output = parallel_map(input, toStrFunc);
+	std::vector<std::string> sequential_output = sequential_map(input, toStrFunc);
 
 	ASSERT_EQ(parallel_output.size(), sequential_output.size());
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
+
 }
 
-TEST_F(basic_tests, sequential_scan){
+TEST_F(basic_tests, parallel_scan){
 	int lastP, lastS;
-	std::vector<int> parallel_output = parallel_scan(input, lastP);
-	std::vector<int> sequential_output = parallel_scan(input, lastS);
+
+	std::vector<int> parallel_output = input;
+	lastP = parallel_scan(parallel_output);
+	std::vector<int> sequential_output = input;
+	lastS = sequential_scan(sequential_output);
+
 
 	ASSERT_EQ(parallel_output.size(), sequential_output.size());
 	ASSERT_EQ(lastP, lastS);
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
+
 }
 
 
@@ -102,7 +107,7 @@ TEST_F(basic_tests, empty_vector){
 	ASSERT_EQ(parallel_filter(input, greater<int, 0>).size(), 0);
 	ASSERT_EQ(parallel_map(input, toStrFunc).size(), 0);
 	int last;
-	ASSERT_EQ(parallel_scan(input, last).size(), 0);
+	ASSERT_EQ(parallel_scan(input), 0);
 }
 
 // STRESS testing
