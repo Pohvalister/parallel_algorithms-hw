@@ -31,9 +31,18 @@ T parallel_scan_pow2(std::vector<T> & data, const std::size_t & start, const std
 	return total;
 }
 
+std::size_t bytesOf(std::size_t num){
+	std::size_t counter=0;
+	while(num!=0){
+		num>>=1;
+		counter++;
+	}
+	return counter;
+}
+
 template<typename T>
 T parallel_scan(std::vector<T> & data){//exclusive_inplace scan
-	std::size_t bytes_count = sizeof(data.size());
+	std::size_t bytes_count = bytesOf(data.size());//!!!
 
 	T accumulated = 0;
 	std::size_t offset = 0;

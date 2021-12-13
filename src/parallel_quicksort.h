@@ -35,7 +35,7 @@ static void recur_parallel_qsort(std::vector<T>& data){//end points on las elem
 	if (data.size() <= 1)
 		return;
 
-	T dividor = data[data.size()/2];
+	T dividor = data[0];
 	std::vector<T> lesser_part = cilk_spawn parallel_filter<T>(data, [&dividor](T const& val){return val < dividor;});
 	std::vector<T> equal_part = cilk_spawn parallel_filter<T>(data, [&dividor](T const& val){return val == dividor;});
 	std::vector<T> bigger_part = cilk_spawn parallel_filter<T>(data, [&dividor](T const& val){return val > dividor;});
@@ -53,7 +53,6 @@ static void recur_parallel_qsort(std::vector<T>& data){//end points on las elem
 
 	parallel_copy(equal_part, data, lesser_part.size());
 	cilk_sync;
-
 }
 
 template<typename T>

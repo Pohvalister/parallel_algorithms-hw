@@ -14,9 +14,11 @@ std::vector<T> parallel_filter(const std::vector<T> & data, std::function <bool(
     T result_size = parallel_scan(scanned);
 
 	std::vector<T> result(result_size);
+	if (result.empty())
+		return result;
 #pragma grainsize 1
 	cilk_for(std::size_t i = 0; i < data.size(); i++){
-		if (mapped[i] != 0)
+		if (mapped[i] == 1)
 			result[scanned[i]] = data[i];
 	}
 	return result;
