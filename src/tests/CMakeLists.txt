@@ -4,7 +4,10 @@ cmake_minimum_required(VERSION 3.10)
 
 add_subdirectory(./googletest)
 
+#include_directories(../parallel_tools)
+
 add_executable(run_tests
-        run_tests.cpp
+        run_primitives_tests.cpp
+
         )
 target_link_libraries(run_tests pthread gtest gtest_main)

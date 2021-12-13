@@ -7,7 +7,7 @@ include_directories(./cilk/include)
 
 include_directories(./src)
 
-add_compile_options( -std=c++17)##-fcilkplus -lcilkrts <- useless?
+add_compile_options(-std=c++17)##-fcilkplus -lcilkrts <- useless?
 
 add_executable(parallel_qsort
         src/quicksorts.h

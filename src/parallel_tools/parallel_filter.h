@@ -7,8 +7,8 @@
 //filter : map into 0|1|0|0|1|... -> exclusive_scan -> insert with parallel_for
 template<typename T>
 std::vector<T> parallel_filter(const std::vector<T> & data, bool(*predicate)(const T&)){
-    std::vector<T> mapped = parallel_map<T, uint32_t>(data, [&](T a){ return (predicate(a)? 1 : 0);});
-    std::size_t result_size;
+    std::vector<int> mapped = parallel_map<T, int>(data, [&predicate](const T& val){return (predicate(val) ? 1 : 0);});
+    T result_size;
 	std::vector<T> scanned = parallel_scan(data, result_size);
 
 	std::vector<T> result(result_size);
