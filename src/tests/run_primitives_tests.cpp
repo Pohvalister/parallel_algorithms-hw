@@ -23,16 +23,6 @@ protected:
 	std::vector<int> input;
 };
 
-class intensive_tests : public ::testing::Test{
-protected:
-	void SetUp(){
-		const int BIG_AMOUNT = 100001;
-		for (size_t i = 0; i < BIG_AMOUNT; i ++)
-			big_input.push_back(1);//big_input.push_back(rand() * (rand() % 2 ? 1 : -1));
-	}
-	std::vector<int> big_input;
-};
-
 TEST_F(basic_tests, parallel_filter){
 	std::function<bool(const int&)> greater = [](const int& val){return val > 0;};
 	std::vector<int> parallel_output = parallel_filter(input, greater);
@@ -41,7 +31,6 @@ TEST_F(basic_tests, parallel_filter){
 	ASSERT_EQ(parallel_output.size(), sequential_output.size());
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
-
 }
 
 TEST_F(basic_tests, parallel_map){
@@ -79,6 +68,19 @@ TEST_F(basic_tests, empty_vector){
 	ASSERT_EQ(parallel_scan(input), 0);
 }
 
+class intensive_tests : public ::testing::Test{
+protected:
+	void SetUp(){
+		const int BIG_AMOUNT = 100001;
+		for (size_t i = 0; i < BIG_AMOUNT; i ++){
+			big_input.push_back(rand() * (rand() % 2 ? 1 : -1));
+			big_ones.push_back(1);
+		}
+	}
+	std::vector<int> big_ones;
+	std::vector<int> big_input;
+};
+
 TEST_F(intensive_tests, parallel_map){
 	std::function<int(const int&)> inc = [](const int& val){return val + 1;};
 
@@ -103,33 +105,75 @@ TEST_F(intensive_tests, parallel_scan){
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
 }
+
 #include <chrono>
-template <typename T>
-int calc_time(std::vector<T> data, std::function<void(std::vector<T>&)> mapper){
-	std::chrono::steady_clock::time_point start_timer = std::chrono::steady_clock::now();
-	mapper(data);
-	std::chrono::steady_clock::time_point stop_timer = std::chrono::steady_clock::now();
-	return std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer).count();
-}
+class benchmarking : public ::testing::Test{
+protected:
+	void SetUp(){
+		std::cout<< "\nCilk workers: " << __cilkrts_get_nworkers() << '\n';
+		srand(time(0));
+	}
+	const std::size_t AMOUNT = 100000000;
+	const std::size_t ITER = 5;
 
-TEST(benchmarking, map){
-	std::cout<< "Cilk workers: " << __cilkrts_get_nworkers() << '\n';
-	const std::size_t AMOUNT = 10000000;
-	srand(time(0));
+	template <typename T>
+	int calc_time(std::vector<T> data, std::function<void(std::vector<T>&)> mapper)
+	{
+		std::chrono::steady_clock::time_point start_timer = std::chrono::steady_clock::now();
+		mapper(data);
+		std::chrono::steady_clock::time_point stop_timer = std::chrono::steady_clock::now();
+		return std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer).count();
+	}
+};
 
+
+TEST_F(benchmarking, map){
 	std::function<int(const int&)> inc = [](const int& val){return val + 1;};
-	const std::size_t ITER = 10;
+
+	std::function<void(std::vector<int>&)> s_map = [&inc](std::vector<int>& data){ sequential_map(data, inc);};
+	std::function<void(std::vector<int>&)> p_map = [&inc](std::vector<int>& data){ parallel_map(data, inc);};
+
 	for (std::size_t i = 0; i < ITER; i++){
 		std::vector<int> data1;
 		for (std::size_t i = 0; i < AMOUNT; i++)
 			data1.push_back( rand() * (rand() % 2 ? 1 : -1));
 
 		std::vector<int> data2 = data1;
-		std::function<void(std::vector<int>&)> s_sort = [&inc](std::vector<int>& data){ sequential_map(data, inc);};
-		std::cout<< "seq: " << calc_time(data1, s_sort) << '\n';
 
-		std::function<void(std::vector<int>&)> p_sort = [&inc](std::vector<int>& data){ parallel_map(data, inc);};
-		std::cout<< "par: " << calc_time(data2, p_sort) << '\n';
+		std::cout<< "seq map: " << calc_time(data1, s_map) << '\n';
+		std::cout<< "par map: " << calc_time(data2, p_map) << '\n';
+	}
+}
+
+TEST_F(benchmarking, scan){
+	std::function<void(std::vector<int>&)> s_scan = [](std::vector<int>& data){ sequential_scan(data);};
+	std::function<void(std::vector<int>&)> p_scan = [](std::vector<int>& data){ parallel_scan(data);};
+
+	for (std::size_t i = 0; i < ITER; i++){
+		std::vector<int> data1;
+		for (std::size_t i = 0; i < AMOUNT; i++)
+			data1.push_back( rand() * (rand() % 2 ? 1 : -1));
+		std::vector<int> data2 = data1;
+
+		std::cout<< "seq scan: " << calc_time(data1, s_scan) << '\n';
+		std::cout<< "par scan: " << calc_time(data2, p_scan) << '\n';
+	}
+}
+
+TEST_F(benchmarking, filter){
+	std::function<bool(const int&)> positive = [](const int& val){return val > 0;};
+
+	std::function<void(std::vector<int>&)> s_filter = [&positive](std::vector<int>& data){ sequential_filter(data, positive);};
+	std::function<void(std::vector<int>&)> p_filter = [&positive](std::vector<int>& data){ parallel_filter(data, positive);};
+
+	for (std::size_t i = 0; i < ITER; i++){
+		std::vector<int> data1;
+		for (std::size_t i = 0; i < AMOUNT; i++)
+			data1.push_back( rand() * (rand() % 2 ? 1 : -1));
+		std::vector<int> data2 = data1;
+
+		std::cout<< "seq filter: " << calc_time(data1, s_filter) << '\n';
+		std::cout<< "par filter: " << calc_time(data2, p_filter) << '\n';
 	}
 }
 

@@ -12,7 +12,7 @@ add_compile_options(-g -fcilkplus -DUSE_CILK_PLUS_RUNTIME -std=c++17)
 add_executable(parallel_qsort
         src/parallel_quicksort.h
         src/parallel_tools/.
-        main.cpp)##
-target_link_libraries(parallel_qsort pthread cilkrts)##\
+        main.cpp)
+target_link_libraries(parallel_qsort pthread cilkrts)
 
 add_subdirectory(src/tests)
