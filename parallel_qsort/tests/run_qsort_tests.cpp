@@ -7,7 +7,7 @@
 
 TEST(basic_tests, simple_usage){
 	std::vector<int> data = {10, 20, -3, 4};
-	parallel_qsort(data);
+	parallel_qsort_filter(data);
 	ASSERT_EQ(data[0], -3);
 	ASSERT_EQ(data[1], 4);
 	ASSERT_EQ(data[2], 10);
@@ -21,7 +21,7 @@ TEST(basic_tests, parallel_qsort_filter){
 		parallel_data.push_back(rand());
 	std::vector<int> sequentional_data = parallel_data;
 
-	parallel_qsort(parallel_data);
+	parallel_qsort_filter(parallel_data);
 	sequential_qsort(sequentional_data);
 
 	ASSERT_EQ(parallel_data.size(), AMOUNT);
@@ -65,7 +65,7 @@ protected:
 TEST_F(intensive_tests, parallel_qsort_filter){
 	for (std::size_t i = 0; i < ITER; i++){
 		std::random_shuffle(data.begin(), data.end());
-		parallel_qsort(data);
+		parallel_qsort_filter(data);
 
 		for (std::size_t i = 0; i < AMOUNT; i++)
 			ASSERT_EQ(data[i], example[i]);
@@ -75,6 +75,15 @@ TEST_F(intensive_tests, parallel_qsort_inplace){
 	for (std::size_t i = 0; i < ITER; i++){
 		std::random_shuffle(data.begin(), data.end());
 		parallel_qsort_inplace(data);
+
+		for (std::size_t i = 0; i < AMOUNT; i++)
+			ASSERT_EQ(data[i], example[i]);
+	}
+}
+TEST_F(intensive_tests, parallel_qsort_inplace_blocked){
+	for (std::size_t i = 0; i < ITER; i++){
+		std::random_shuffle(data.begin(), data.end());
+		parallel_qsort_inplace(data, 10);
 
 		for (std::size_t i = 0; i < AMOUNT; i++)
 			ASSERT_EQ(data[i], example[i]);
@@ -101,10 +110,8 @@ protected:
 		return std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer).count();
 	}
 };
-
-
 TEST_F(benchmarking, parallel_qsort_filter){
-	std::function<void(std::vector<int>&)> p_sort = [](std::vector<int>& data){ parallel_qsort(data);};
+	std::function<void(std::vector<int>&)> p_sort = [](std::vector<int>& data){ parallel_qsort_filter(data);};
 
 	int seq_time = 0, par_time = 0;
 	for (std::size_t i = 0; i < ITER; i++){
@@ -119,7 +126,6 @@ TEST_F(benchmarking, parallel_qsort_filter){
 	}
 	std::cout<< "seq: " << seq_time << ", par_f: " << par_time << '\n';
 }
-
 TEST_F(benchmarking, parallel_qsort_inplace){
 	std::function<void(std::vector<int>&)> p_sort = [](std::vector<int>& data){ parallel_qsort_inplace(data);};
 	int seq_time = 0, par_time = 0;
@@ -135,7 +141,6 @@ TEST_F(benchmarking, parallel_qsort_inplace){
 	}
 	std::cout<< "seq: " << seq_time << ", par_i: " << par_time << '\n';
 }
-
 TEST_F(benchmarking, parallel_qsort_inplace_blocked){
 
 	for (int i = 10; i <= 10'000'000; i*=10){

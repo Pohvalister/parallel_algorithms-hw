@@ -5,14 +5,14 @@ set(CMAKE_CXX_STANDARD 17)
 link_directories(./cilk/lib)
 include_directories(./cilk/include)
 
-include_directories(./src)
+include_directories(./parallel_qsort)
 
 add_compile_options(-g -fcilkplus -DUSE_CILK_PLUS_RUNTIME -std=c++17)
 
 add_executable(parallel_qsort
-        src/parallel_quicksort.h
-        src/parallel_tools/.
+        parallel_qsort/parallel_quicksort.h
+        parallel_qsort/parallel_tools/.
         main.cpp)
 target_link_libraries(parallel_qsort pthread cilkrts)
 
-add_subdirectory(src/tests)
+add_subdirectory(parallel_qsort/tests)

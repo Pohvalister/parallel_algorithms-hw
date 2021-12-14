@@ -8,19 +8,18 @@
 #include "parallel_tools/parallel_filter.h"
 #include "parallel_tools/sequentional_tools.h"
 
-/*quicksort(a, l, r):
+/*quicksort_filter(a, l, r):
 	if (r - l) > 1
     	x <- a[rand(l,r)]
-    	left <- filter(a, l, r, []{y < x})
-    	middle <- filter(a, l, r, []{y == x})
-    	right <- filter (a, l, r, []{y > x})
+    	left <- filter(a, l, r, < x})
+    	middle <- filter(a, l, r, == x})
+    	right <- filter (a, l, r,  > x})
     	forkjoin(
         	quicksort(left)
         	quicksort(right)
     	)
     	merge left, middle, right
 */
-
 template<typename T>
 static void parallel_copy(const std::vector<T>& src, std::vector<T>& dst, int offset){
 #pragma grainsize 1
@@ -30,7 +29,7 @@ static void parallel_copy(const std::vector<T>& src, std::vector<T>& dst, int of
 }
 
 template<typename T>
-static void recur_parallel_qsort(std::vector<T>& data){//end points on las elem
+static void recur_parallel_qsort_filter(std::vector<T>& data){//end points on las elem
 	if (data.size() <= 1)
 		return;
 
@@ -41,18 +40,17 @@ static void recur_parallel_qsort(std::vector<T>& data){//end points on las elem
 	cilk_sync;
 
 	cilk_spawn {
-		recur_parallel_qsort(lesser_part);
+		recur_parallel_qsort_filter(lesser_part);
 		parallel_copy(lesser_part, data, 0);
 	};
 	cilk_spawn parallel_copy(equal_part, data, lesser_part.size());
-	recur_parallel_qsort(bigger_part);
+	recur_parallel_qsort_filter(bigger_part);
 	parallel_copy(bigger_part, data, data.size() - bigger_part.size());
 	cilk_sync;
 }
-
 template<typename T>
-void parallel_qsort(std::vector<T>& data){
-	recur_parallel_qsort(data);
+void parallel_qsort_filter(std::vector<T>& data){
+	recur_parallel_qsort_filter(data);
 }
 
 template<typename T>
@@ -64,13 +62,10 @@ void recur_parallel_qsort_inplace(std::vector<T>& data, int start_pos, int end_p
 	recur_parallel_qsort_inplace(data, split + 1, end_pos);
 	cilk_sync;
 }
-
-
 template<typename T>//without filter
 void parallel_qsort_inplace(std::vector<T>& data){
 	recur_parallel_qsort_inplace(data, 0, data.size() - 1);
 }
-
 
 template<typename T>
 void recur_parallel_qsort_inplace(std::vector<T>& data, int start_pos, int end_pos, int block_size){
@@ -85,7 +80,6 @@ void recur_parallel_qsort_inplace(std::vector<T>& data, int start_pos, int end_p
 	recur_parallel_qsort_inplace(data, split + 1, end_pos);
 	cilk_sync;
 }
-
 template<typename T>//with seq BLOCKS
 void parallel_qsort_inplace(std::vector<T>& data, int block_size){
 	recur_parallel_qsort_inplace(data, 0, data.size() - 1, block_size);

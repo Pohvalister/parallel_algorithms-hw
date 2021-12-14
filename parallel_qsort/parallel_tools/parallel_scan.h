@@ -42,7 +42,7 @@ std::size_t bytesOf(std::size_t num){
 
 template<typename T>
 T parallel_scan(std::vector<T> & data){//exclusive_inplace scan
-	std::size_t bytes_count = bytesOf(data.size());//!!!
+	std::size_t bytes_count = bytesOf(data.size());
 
 	T accumulated = 0;
 	std::size_t offset = 0;

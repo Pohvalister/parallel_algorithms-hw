@@ -9,7 +9,7 @@ std::vector<TOut> parallel_map(const std::vector<TIn> &data, std::function<TOut(
     std::vector<TOut> result(data.size());
 
 #pragma grainsize 1
-    cilk_for(std::size_t i = 0; i < data.size(); i++){
+    cilk_for(int i = 0; i < data.size(); i++){
         result[i] = func(data[i]);
     }
     return result;

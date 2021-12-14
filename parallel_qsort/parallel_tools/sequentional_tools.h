@@ -1,5 +1,5 @@
-#ifndef PARALLEL_QSORT_SRC_TESTS_SEQUENTIONAL_TOOLS_H
-#define PARALLEL_QSORT_SRC_TESTS_SEQUENTIONAL_TOOLS_H
+#ifndef PARALLEL_QSORT_SEQUENTIONAL_TOOLS_H
+#define PARALLEL_QSORT_SEQUENTIONAL_TOOLS_H
 
 // primitives
 template<typename T>
@@ -31,7 +31,7 @@ T sequential_scan(std::vector<T> & data){//exclusive_inplace scan
 	return sum;
 }
 
-// qsorting funcs
+// qsorting
 template<typename T>
 static std::size_t partition(std::vector<T>& data, std::size_t start, std::size_t end){
 	T dividor = data[start];
@@ -55,16 +55,12 @@ template<typename T>
 	if (start >= end)
 		return;
 	std::size_t split = partition(data, start, end);
-	recur_sequential_qsort(data, start, split); //cilk_spawn here doubles speed
+	recur_sequential_qsort(data, start, split);
 	recur_sequential_qsort(data, split + 1, end);
-	//cilk_sync;
 }
 
 template<typename T>
 void sequential_qsort(std::vector<T>& data){
 	recur_sequential_qsort(data, 0, data.size() - 1);
 }
-
-
-
-#endif //PARALLEL_QSORT_SRC_TESTS_SEQUENTIONAL_TOOLS_H
+#endif //PARALLEL_QSORT_SEQUENTIONAL_TOOLS_H

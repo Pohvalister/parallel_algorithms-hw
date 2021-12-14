@@ -21,7 +21,6 @@ protected:
 	}
 	std::vector<int> input;
 };
-
 TEST_F(basic_tests, parallel_map){
 	std::function<std::string(const int&)> toStrFunc(toStr<int>);
 	std::vector<std::string> parallel_output = parallel_map(input, toStrFunc);
@@ -31,7 +30,6 @@ TEST_F(basic_tests, parallel_map){
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
 }
-
 TEST_F(basic_tests, parallel_scan){
 	int lastP, lastS;
 
@@ -45,7 +43,6 @@ TEST_F(basic_tests, parallel_scan){
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
 }
-
 TEST_F(basic_tests, parallel_filter){
 	std::function<bool(const int&)> greater = [](const int& val){return val > 0;};
 	std::vector<int> parallel_output = parallel_filter(input, greater);
@@ -55,8 +52,6 @@ TEST_F(basic_tests, parallel_filter){
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
 }
-
-
 TEST_F(basic_tests, empty_vector){
 	std::vector<int> input(0);
 	std::function<std::string(const int&)> toStrFunc(toStr<int>);
@@ -80,7 +75,6 @@ protected:
 	std::vector<int> big_ones;
 	std::vector<int> big_input;
 };
-
 TEST_F(intensive_tests, parallel_map){
 	std::function<int(const int&)> inc = [](const int& val){return val + 1;};
 
@@ -91,7 +85,6 @@ TEST_F(intensive_tests, parallel_map){
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
 }
-
 TEST_F(intensive_tests, parallel_scan){
 	int lastP, lastS;
 
@@ -113,7 +106,7 @@ protected:
 		std::cout<< "\nCilk workers: " << __cilkrts_get_nworkers() << '\n';
 		srand(time(0));
 	}
-	const std::size_t AMOUNT = 100000000;
+	const std::size_t AMOUNT = 100'000'000;
 	const std::size_t ITER = 5;
 
 	template <typename T>
@@ -144,7 +137,6 @@ TEST_F(benchmarking, map){
 		std::cout<< "par map: " << calc_time(data2, p_map) << '\n';
 	}
 }
-
 TEST_F(benchmarking, scan){
 	std::function<void(std::vector<int>&)> s_scan = [](std::vector<int>& data){ sequential_scan(data);};
 	std::function<void(std::vector<int>&)> p_scan = [](std::vector<int>& data){ parallel_scan(data);};
@@ -159,7 +151,6 @@ TEST_F(benchmarking, scan){
 		std::cout<< "par scan: " << calc_time(data2, p_scan) << '\n';
 	}
 }
-
 TEST_F(benchmarking, filter){
 	std::function<bool(const int&)> positive = [](const int& val){return val > 0;};
 
