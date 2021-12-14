@@ -5,9 +5,9 @@
 template<typename T>
 std::vector<T> sequential_filter(const std::vector<T>& data, std::function <bool(const T&)>predicate){
 	std::vector<T> result;
-	for (const T & value : data)
-		if (predicate(value))
-			result.push_back(value);
+	for (std::size_t i = 0; i < data.size(); i++)
+		if (predicate(data[i]))
+			result.push_back(data[i]);
 
 	return result;
 }
@@ -15,18 +15,14 @@ std::vector<T> sequential_filter(const std::vector<T>& data, std::function <bool
 template<typename TIn, typename TOut>
 std::vector<TOut> sequential_map(const std::vector<TIn> &data, std::function<TOut(const TIn&)>func){
 	std::vector<TOut> result;
-	for(std::size_t i = 0; i < data.size(); i++){
+	for(std::size_t i = 0; i < data.size(); i++)
 		result.push_back(func(data[i]));
-	}
 
 	return result;
 }
 
 template<typename T>
 T sequential_scan(std::vector<T> & data){//exclusive_inplace scan
-	if (data.empty())
-		return 0;
-
 	T sum = 0;
 	for (std::size_t i = 0; i < data.size(); i++){
 		std::swap(sum, data[i]);
@@ -55,7 +51,7 @@ static std::size_t partition(std::vector<T>& data, std::size_t start, std::size_
 }
 
 template<typename T>
-static void recur_sequential_qsort(std::vector<T>& data, std::size_t start, std::size_t end){//end points on las elem
+ void recur_sequential_qsort(std::vector<T>& data, std::size_t start, std::size_t end){//end points on las elem
 	if (start >= end)
 		return;
 	std::size_t split = partition(data, start, end);

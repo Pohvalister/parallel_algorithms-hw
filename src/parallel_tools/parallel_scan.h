@@ -16,10 +16,6 @@ T parallel_scan_pow2(std::vector<T> & data, const int & start, const std::size_t
 		cilk_for(int j = start + jump; j <= end; j += jump){
 			data[j - 1] += data[j - jump/2 - 1];
 		}
-//		cilk_for(std::size_t j = 1; j <= (end - start)/jump; j++){
-//			std::size_t position = start + j*jump;
-//			data[position - 1] += data[position - jump/2 - 1];
-//		}
 	}
 	T total = data[end - 1];
 	data[end - 1] = 0;

@@ -1,12 +1,11 @@
 #include <gtest/gtest.h>
-#include <random>
 #include <vector>
 #include <functional>
 
 #include "parallel_tools/parallel_filter.h"
 #include "parallel_tools/parallel_map.h"
 #include "parallel_tools/parallel_scan.h"
-#include "sequentional_tools.h"
+#include "parallel_tools/sequentional_tools.h"
 
 template<typename T>
 static std::string toStr(const T& val){
@@ -16,22 +15,12 @@ static std::string toStr(const T& val){
 class basic_tests : public ::testing::Test{
 protected:
 	void SetUp(){
-		const int AMOUNT = 101;
+		const int AMOUNT = 100;
 		for (size_t i = 0; i < AMOUNT; i++)
-			input.push_back(random());
+			input.push_back(1);
 	}
 	std::vector<int> input;
 };
-
-TEST_F(basic_tests, parallel_filter){
-	std::function<bool(const int&)> greater = [](const int& val){return val > 0;};
-	std::vector<int> parallel_output = parallel_filter(input, greater);
-	std::vector<int> sequential_output = sequential_filter(input, greater);
-
-	ASSERT_EQ(parallel_output.size(), sequential_output.size());
-	for (std::size_t i = 0; i < parallel_output.size(); i++)
-		ASSERT_EQ(parallel_output[i], sequential_output[i]);
-}
 
 TEST_F(basic_tests, parallel_map){
 	std::function<std::string(const int&)> toStrFunc(toStr<int>);
@@ -56,6 +45,17 @@ TEST_F(basic_tests, parallel_scan){
 	for (std::size_t i = 0; i < parallel_output.size(); i++)
 		ASSERT_EQ(parallel_output[i], sequential_output[i]);
 }
+
+TEST_F(basic_tests, parallel_filter){
+	std::function<bool(const int&)> greater = [](const int& val){return val > 0;};
+	std::vector<int> parallel_output = parallel_filter(input, greater);
+	std::vector<int> sequential_output = sequential_filter(input, greater);
+
+	ASSERT_EQ(parallel_output.size(), sequential_output.size());
+	for (std::size_t i = 0; i < parallel_output.size(); i++)
+		ASSERT_EQ(parallel_output[i], sequential_output[i]);
+}
+
 
 TEST_F(basic_tests, empty_vector){
 	std::vector<int> input(0);
