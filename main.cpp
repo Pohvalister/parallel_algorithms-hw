@@ -4,7 +4,7 @@
 
 int main() {
 	std::vector<int> tmp = {10, 20, -3, 4};
-	parallel_qsort(tmp);
+	parallel_qsort_filter(tmp);
 	for (auto val : tmp){
 		std::cout<< val << ' ';
 	}

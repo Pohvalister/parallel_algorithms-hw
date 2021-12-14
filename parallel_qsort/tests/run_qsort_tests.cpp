@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "parallel_quicksort.h"
-#include "parallel_tools/sequentional_tools.h"
+#include "parallel_tools/sequential_tools.h"
 
 TEST(basic_tests, simple_usage){
 	std::vector<int> data = {10, 20, -3, 4};
@@ -19,30 +19,30 @@ TEST(basic_tests, parallel_qsort_filter){
 	std::vector<int> parallel_data;
 	for (std::size_t i = 0; i < AMOUNT; i++)
 		parallel_data.push_back(rand());
-	std::vector<int> sequentional_data = parallel_data;
+	std::vector<int> sequential_data = parallel_data;
 
 	parallel_qsort_filter(parallel_data);
-	sequential_qsort(sequentional_data);
+	sequential_qsort(sequential_data);
 
 	ASSERT_EQ(parallel_data.size(), AMOUNT);
-	ASSERT_EQ(parallel_data.size(), sequentional_data.size());
+	ASSERT_EQ(parallel_data.size(), sequential_data.size());
 	for (std::size_t i = 0; i < parallel_data.size(); i++)
-		ASSERT_EQ(parallel_data[i], sequentional_data[i]);
+		ASSERT_EQ(parallel_data[i], sequential_data[i]);
 }
 TEST(basic_tests, parallel_qsort_inplace){
 	const int AMOUNT = 101;
 	std::vector<int> parallel_data;
 	for (std::size_t i = 0; i < AMOUNT; i++)
 		parallel_data.push_back(rand());
-	std::vector<int> sequentional_data = parallel_data;
+	std::vector<int> sequential_data = parallel_data;
 
 	parallel_qsort_inplace(parallel_data);
-	sequential_qsort(sequentional_data);
+	sequential_qsort(sequential_data);
 
 	ASSERT_EQ(parallel_data.size(), AMOUNT);
-	ASSERT_EQ(parallel_data.size(), sequentional_data.size());
+	ASSERT_EQ(parallel_data.size(), sequential_data.size());
 	for (std::size_t i = 0; i < parallel_data.size(); i++)
-		ASSERT_EQ(parallel_data[i], sequentional_data[i]);
+		ASSERT_EQ(parallel_data[i], sequential_data[i]);
 }
 
 class intensive_tests : public ::testing::Test{

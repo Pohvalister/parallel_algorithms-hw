@@ -6,14 +6,14 @@
 * `infrastructure/tools/get $(pwd)/opencilk`
 * `infrastructure/tools/build $(pwd)/opencilk $(pwd)/build`
 * `cd $(pwd)/build`
-* `cmake -DCMAKE_INSTALL_PREFIX=<путь до папки с проектом>/parallel-qsort/cilk -P cmake_install.cmake`
+* `cmake -DCMAKE_INSTALL_PREFIX=<путь до папки с проектом>/parallel_algorithms-hw/cilk -P cmake_install.cmake`
 
 ## Установка Google Tests
-* `git clone https://github.com/google/googletest.git <путь до папки с проектом>/parallel_qsort/tests`
+* `git clone https://github.com/google/googletest.git <путь до папки с проектом>/parallel_qsort/tests/googletest`
 
 ## Запуск
 Компиляция проекта производится из директории с использованием `CMake`
-* `cmake .`
+* `CC=cilk/bin/clang CXX=cilk/bin/clang++ cmake .`
 * `make`
 
 Запуск тестирования производится из папки `tests`

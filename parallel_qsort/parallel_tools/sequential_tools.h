@@ -1,5 +1,5 @@
-#ifndef PARALLEL_QSORT_SEQUENTIONAL_TOOLS_H
-#define PARALLEL_QSORT_SEQUENTIONAL_TOOLS_H
+#ifndef PARALLEL_QSORT_SEQUENTIAL_TOOLS_H
+#define PARALLEL_QSORT_SEQUENTIAL_TOOLS_H
 
 // primitives
 template<typename T>
@@ -34,7 +34,7 @@ T sequential_scan(std::vector<T> & data){//exclusive_inplace scan
 // qsorting
 template<typename T>
 static std::size_t partition(std::vector<T>& data, std::size_t start, std::size_t end){
-	T dividor = data[start];
+	T dividor = data[start];//(rand() % (end - start)) + start
 	std::size_t i = start, j = end;
 	while (i <= j){
 		while (data[i]< dividor)
@@ -63,4 +63,4 @@ template<typename T>
 void sequential_qsort(std::vector<T>& data){
 	recur_sequential_qsort(data, 0, data.size() - 1);
 }
-#endif //PARALLEL_QSORT_SEQUENTIONAL_TOOLS_H
+#endif //PARALLEL_QSORT_SEQUENTIAL_TOOLS_H

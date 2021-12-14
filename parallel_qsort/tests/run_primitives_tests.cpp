@@ -5,7 +5,7 @@
 #include "parallel_tools/parallel_filter.h"
 #include "parallel_tools/parallel_map.h"
 #include "parallel_tools/parallel_scan.h"
-#include "parallel_tools/sequentional_tools.h"
+#include "parallel_tools/sequential_tools.h"
 
 template<typename T>
 static std::string toStr(const T& val){

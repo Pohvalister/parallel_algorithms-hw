@@ -12,7 +12,7 @@ T parallel_scan_pow2(std::vector<T> & data, const int & start, const std::size_t
 	//upwards
 	for (std::size_t i = 1; i <= pow2; i++){
 		size_t jump = 1<<i;
-#pragma grainsize 1
+#pragma grainsize 10000
 		cilk_for(int j = start + jump; j <= end; j += jump){
 			data[j - 1] += data[j - jump/2 - 1];
 		}
@@ -22,7 +22,7 @@ T parallel_scan_pow2(std::vector<T> & data, const int & start, const std::size_t
 	//downwards
 	for (std::size_t i = pow2; i > 0; i--){
 		size_t jump = 1<<i;
-#pragma grainsize 1
+#pragma grainsize 10000
 		cilk_for(int j = start + jump; j <= end; j+=jump){
 			std::swap(data[j - 1], data[j - jump/2 - 1]);
 			data[j - 1] += data[j - jump/2 - 1];
