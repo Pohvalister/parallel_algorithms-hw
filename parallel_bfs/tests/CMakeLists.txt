@@ -7,6 +7,7 @@ add_subdirectory(./googletest)
 add_compile_options(-g -fcilkplus -DUSE_CILK_PLUS_RUNTIME -std=c++17 -Rpass-analysis=loop-spawning-ti)
 
 add_executable(run_bfs_tests
+        graph_tools.h
         run_bfs_tests.cpp
         )
 
