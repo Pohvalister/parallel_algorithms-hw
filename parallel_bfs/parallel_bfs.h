@@ -30,13 +30,18 @@ for i = s ... :
 using namespace pasl::pctl;
 
 std::vector<int> parallel_bfs(int start_node, const std::vector<std::vector<int>>& edges_lists){
-	parray<std::atomic<int>> atomic_distances(edges_lists.size(), -1);
+	pasl::pctl::parray<int> distances(edges_lists.size(), static_cast<int>(-1));
+	__atomic_store_n(&distances[start_node], 0, __ATOMIC_SEQ_CST);
+
+	//std::vector<int> distances(edges_lists.size(), -1);
 	parray<int> frontier = {start_node};
 
-	atomic_distances[start_node] = 0;
+	distances[start_node] = 0;
+	int counter = 0;
 	while(frontier.size()){
+		counter++;
 		//размеры вершин для создания нового frontier
-		parray<int> fr_nodes_sizes(frontier.size(),[&frontier, &edges_lists, &atomic_distances](int node_id){
+		parray<int> fr_nodes_sizes(frontier.size(),[&frontier, &edges_lists, &distances](int node_id){
 			return edges_lists[frontier[node_id]].size();
 		});
 
@@ -50,22 +55,23 @@ std::vector<int> parallel_bfs(int start_node, const std::vector<std::vector<int>
 		parallel_for(int(0), (int)frontier.size(), [&](int fr_id){//&frontier, &edges_lists, &sizes , &new_frontier, &atomic_distances
 			int curr_node = frontier[fr_id];
 		  parallel_for(int(0), (int)edges_lists[curr_node].size(),[&](int edge_id){
-				int new_dist = atomic_distances[curr_node] + 1;
+				int new_dist = __atomic_load_n(&distances[curr_node], __ATOMIC_SEQ_CST) + 1;
 				int new_node = edges_lists[curr_node][edge_id];
 				int tmp = -1;
-				if (std::atomic_compare_exchange_strong(&(atomic_distances[new_node]), &tmp, new_dist)){}
-					new_frontier[sizes[fr_id] + edge_id];
+				int curr_place = (fr_id ? sizes[fr_id - 1] : 0 ) + edge_id;
+				if (__atomic_compare_exchange_n(&(distances[new_node]), &tmp, new_dist ,false,__ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+					new_frontier[curr_place] = new_node;
 		  });
 		});
 		frontier = filter(new_frontier.begin(), new_frontier.end(), [](int node_id){
-			return node_id!=-1;
+			return node_id != -1;
 		});
 	}
-	std::vector<int> result_distances(atomic_distances.size());
-	parallel_for(int(0), (int)atomic_distances.size(), [&atomic_distances, &result_distances](int id){
-		result_distances[id] = atomic_distances[id];
+	std::vector<int> result(distances.size());
+	parallel_for(int(0), (int)distances.size(),[&](int ind){
+		result[ind] = distances[ind];
 	});
-	return result_distances;
+	return result;
 }
 
 #endif //PARALLEL_QSORT_PARALLEL_BFS_PARALLEL_BFS_H

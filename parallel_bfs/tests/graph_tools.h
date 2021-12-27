@@ -38,11 +38,9 @@ std::vector<std::vector<int>> generate_random_graph(int nodes_size, int edge_app
 	return graph;
 }
 
-
 int generate_num_via_coords(int cube_side_size, int x, int y, int z){
 	return x + cube_side_size * y + cube_side_size * cube_side_size * z;
 }
-
 std::vector<std::vector<int>> generate_cubed_graph(int cube_side_size){
 	std::vector<std::vector<int>> graph(cube_side_size * cube_side_size * cube_side_size, std::vector<int>());
 	for (int i = 0; i < cube_side_size; i++)
@@ -61,7 +59,6 @@ std::vector<std::vector<int>> generate_cubed_graph(int cube_side_size){
 					graph[node_num].push_back(num);
 				}
 			}
-
 	return graph;
 }
 #endif //PARALLEL_QSORT_PARALLEL_BFS_GRAPH_TOOLS_H
