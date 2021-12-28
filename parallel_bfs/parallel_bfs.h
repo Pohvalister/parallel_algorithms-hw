@@ -5,68 +5,48 @@
 #include "datapar.hpp"
 #include <vector>
 #include <cstdint>
-#include <queue>
 #include <atomic>
-/*
-на вход - список смежности
-non_deterministic_parallel_BFS:
-frontier(i) -> frontier(i + 1)
-чтобы не повторялось несколько раз - имеем массив, была ли положена вершина в сет (== есть ли она в выходном массиве)
 
-
-for i = s ... :
-//here need scan : deg|f_i[i].deg|f_i[2].deg|f_i[3].deg|...|f_i[size].deg
-	f_i+1 = new int(сумма всех соседей кажой вершины, -1)
-
-	pfor v = 1...|f_i|:
-		pfor vu из E: //<- pfor?
-			if a[u].cas(0,1):
-				f_i+1[] = u
-	f_i+1 = filter(f_i, x >= 0)
-
- bfs - расстояние от начальной до всех остальных вершин
-*/
 using namespace pasl::pctl;
 
 std::vector<int> parallel_bfs(int start_node, const std::vector<std::vector<int>>& edges_lists){
-	pasl::pctl::parray<int> distances(edges_lists.size(), static_cast<int>(-1));
-	__atomic_store_n(&distances[start_node], 0, __ATOMIC_SEQ_CST);
+	const int NOT_REACHED = -1;
+	parray<int> distances(edges_lists.size(), NOT_REACHED);
+	distances[start_node] = 0;
 	parray<int> frontier = {start_node};
 
-	//seq: 53183, par: 33832
 	int curr_distance = 0;
 	while(frontier.size()){
 		curr_distance++;
-		parray<int> fr_nodes_sizes(frontier.size(),[&frontier, &edges_lists, &distances](int node_id){
+		parray<int> fr_nodes_sizes(frontier.size(),[&frontier, &edges_lists](int node_id){
 			return edges_lists[frontier[node_id]].size();
 		});
 
-		parray<int> sizes = scan(fr_nodes_sizes.begin(), fr_nodes_sizes.end(),(int) 0, [](int x, int y){
+		parray<int> node_sizes = scan(fr_nodes_sizes.begin(), fr_nodes_sizes.end(), 0, [](int x, int y){
 			return x + y;
 		},
 		scan_type::forward_inclusive_scan);
 
-		parray<int> new_frontier(sizes[sizes.size() - 1], -1);
+		parray<int> new_frontier(node_sizes[node_sizes.size() - 1], NOT_REACHED);
 
 		parallel_for(0, (int)frontier.size(), [&](int fr_id){//&frontier, &edges_lists, &sizes , &new_frontier, &atomic_distances
 			int curr_node = frontier[fr_id];
 		  parallel_for(0, (int)edges_lists[curr_node].size(),[&](int edge_id){
 				int new_node = edges_lists[curr_node][edge_id];
-				int tmp = -1;
-				int curr_place = sizes[fr_id] - edge_id - 1;//(fr_id ? sizes[fr_id - 1] : 0 ) + edge_id;
-				if (__atomic_compare_exchange_n(&(distances[new_node]), &tmp, curr_distance ,false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+				int curr_place = node_sizes[fr_id] - edge_id - 1;
+				int to_check = NOT_REACHED;
+				if (__atomic_compare_exchange_n(&(distances[new_node]), &to_check, curr_distance ,false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
 					new_frontier[curr_place] = new_node;
 		  });
 		});
-		frontier = filter(new_frontier.begin(), new_frontier.end(), [](int node_id){
-			return node_id != -1;
+		frontier = filter(new_frontier.begin(), new_frontier.end(), [&NOT_REACHED](int node_id){
+			return node_id != NOT_REACHED;
 		});
 	}
 	std::vector<int> result(distances.size());
-	parallel_for(int(0), (int)distances.size(),[&](int ind){
+	parallel_for(0, (int)distances.size(),[&](int ind){
 		result[ind] = distances[ind];
 	});
 	return result;
 }
-
 #endif //PARALLEL_QSORT_PARALLEL_BFS_PARALLEL_BFS_H

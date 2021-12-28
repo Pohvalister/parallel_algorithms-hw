@@ -11,7 +11,7 @@ parallel_bfs():
 	frontier <- start_node
 	while(!frontier.empty())
 		new_frontier = {}
-		pfor (v = 1 .. frontier[i]):
+		pfor (v из frontier):
 			pfor (vu из E):
 				if (distances[u].cas(-1, 1)
 					new_frontier <- u
@@ -31,7 +31,7 @@ parallel_bfs():
  50 | 82 | 107 | 0,77
  100 | 837 | 757 | 1,10
  150 | 3738 | 3007 | 1,24
- 200 | 11234 | 8228 | 1,37
- 250 | 24245 | 16871 | 1,44
- 300 | 49003 | 30849 | 1,59
- 350 | 85665 | 52157 | 1,65
+ 200 | 11234 | 8228 | 1,41
+ 250 | 24245 | 15871 | 1,59
+ 300 | 49003 | 29898 | 1,65
+ 350 | 88665 | 49811 | 1,83
