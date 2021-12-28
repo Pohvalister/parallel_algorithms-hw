@@ -26,11 +26,11 @@ std::vector<int> sequential_bfs(int start_node, const std::vector<std::vector<in
 }
 
 // Graph generators
-std::vector<std::vector<int>> generate_random_graph(int nodes_size, int edge_appear_probability){
+std::vector<std::vector<int>> generate_random_graph(int nodes_size, int edge_appear_percentage){
 	std::vector<std::vector<int>> graph(nodes_size, std::vector<int>());
 	for (int i = 0; i < nodes_size; i++)
 		for (int j = i + 1; j < nodes_size; j++)
-			if (rand() % 2){
+			if (rand() % 100 < edge_appear_percentage){
 				graph[i].push_back(j);
 				graph[j].push_back(i);
 			}

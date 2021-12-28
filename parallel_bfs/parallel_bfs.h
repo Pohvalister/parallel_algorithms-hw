@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <queue>
 #include <atomic>
-#include <functional>
 /*
 на вход - список смежности
 non_deterministic_parallel_BFS:
@@ -32,34 +31,30 @@ using namespace pasl::pctl;
 std::vector<int> parallel_bfs(int start_node, const std::vector<std::vector<int>>& edges_lists){
 	pasl::pctl::parray<int> distances(edges_lists.size(), static_cast<int>(-1));
 	__atomic_store_n(&distances[start_node], 0, __ATOMIC_SEQ_CST);
-
-	//std::vector<int> distances(edges_lists.size(), -1);
 	parray<int> frontier = {start_node};
 
-	distances[start_node] = 0;
-	int counter = 0;
+	//seq: 53183, par: 33832
+	int curr_distance = 0;
 	while(frontier.size()){
-		counter++;
-		//размеры вершин для создания нового frontier
+		curr_distance++;
 		parray<int> fr_nodes_sizes(frontier.size(),[&frontier, &edges_lists, &distances](int node_id){
 			return edges_lists[frontier[node_id]].size();
 		});
 
-		parray<int> sizes = scan(fr_nodes_sizes.begin(), fr_nodes_sizes.end(),(int) 0,  [](int x, int y){
+		parray<int> sizes = scan(fr_nodes_sizes.begin(), fr_nodes_sizes.end(),(int) 0, [](int x, int y){
 			return x + y;
 		},
 		scan_type::forward_inclusive_scan);
 
 		parray<int> new_frontier(sizes[sizes.size() - 1], -1);
 
-		parallel_for(int(0), (int)frontier.size(), [&](int fr_id){//&frontier, &edges_lists, &sizes , &new_frontier, &atomic_distances
+		parallel_for(0, (int)frontier.size(), [&](int fr_id){//&frontier, &edges_lists, &sizes , &new_frontier, &atomic_distances
 			int curr_node = frontier[fr_id];
-		  parallel_for(int(0), (int)edges_lists[curr_node].size(),[&](int edge_id){
-				int new_dist = __atomic_load_n(&distances[curr_node], __ATOMIC_SEQ_CST) + 1;
+		  parallel_for(0, (int)edges_lists[curr_node].size(),[&](int edge_id){
 				int new_node = edges_lists[curr_node][edge_id];
 				int tmp = -1;
-				int curr_place = (fr_id ? sizes[fr_id - 1] : 0 ) + edge_id;
-				if (__atomic_compare_exchange_n(&(distances[new_node]), &tmp, new_dist ,false,__ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+				int curr_place = sizes[fr_id] - edge_id - 1;//(fr_id ? sizes[fr_id - 1] : 0 ) + edge_id;
+				if (__atomic_compare_exchange_n(&(distances[new_node]), &tmp, curr_distance ,false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
 					new_frontier[curr_place] = new_node;
 		  });
 		});

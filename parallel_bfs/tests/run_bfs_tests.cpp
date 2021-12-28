@@ -31,7 +31,7 @@ TEST(basic_tests, cube_generation){
 }
 
 TEST(basic_tests, parallel_like_sequential){
-	std::vector<std::vector<int>> graph = generate_random_graph(10,0.4);
+	std::vector<std::vector<int>> graph = generate_random_graph(10,40);
 
 	std::vector<int> seq_distances = sequential_bfs(0, graph);
 	std::vector<int> par_distances = parallel_bfs(0, graph);
@@ -41,27 +41,52 @@ TEST(basic_tests, parallel_like_sequential){
 	}
 }
 
-TEST(benchmarking, intensive_trials){
+TEST(basic_tests, random_graph){
+	for (int size = 500; size <= 5000; size *= 10){
+		for (int percent = 1; percent <= 10; percent++){
+			auto graph = generate_random_graph(size, percent);
+			std::vector<int> seq_distances = sequential_bfs(0, graph);
+			std::vector<int> par_distances = parallel_bfs(0, graph);
 
+			ASSERT_EQ(seq_distances.size(), par_distances.size());
+			for (int i = 0; i < seq_distances.size(); i++){
+				ASSERT_EQ(seq_distances[i], par_distances[i]);
+
+			}
+		}
+	}
 }
 
 #include <chrono>
+class benchmarking : public ::testing::Test{
+protected:
+	void SetUp(){
+		srand(time(0));
+	}
 
-int calc_time(const std::vector<std::vector<int>>& graph, std::function<void(int, std::vector<std::vector<int>>)> bfs_func){
-	std::chrono::steady_clock::time_point start_timer = std::chrono::steady_clock::now();
-	bfs_func(0, graph);
-	std::chrono::steady_clock::time_point stop_timer = std::chrono::steady_clock::now();
-	return std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer).count();
-}
+	const std::size_t ITER = 5;
 
-TEST(benchmarking, cube500_solving){
 	std::function<void(int, std::vector<std::vector<int>>)> par_bfs = [](int start, const std::vector<std::vector<int>>&data){ parallel_bfs(start, data);};
 	std::function<void(int, std::vector<std::vector<int>>)> seq_bfs = [](int start, const std::vector<std::vector<int>>&data){ sequential_bfs(start, data);};
-	int seq_time = 0, par_time=0;
-	for (int i = 0; i < 3; i++){
-		auto graph = generate_cubed_graph(500);
-		seq_time += calc_time(graph,seq_bfs);
-		par_time += calc_time(graph, par_bfs);
+
+	int calc_time(const std::vector<std::vector<int>>& graph, std::function<void(int, std::vector<std::vector<int>>)> bfs_func){
+		std::chrono::steady_clock::time_point start_timer = std::chrono::steady_clock::now();
+		bfs_func(0, graph);
+		std::chrono::steady_clock::time_point stop_timer = std::chrono::steady_clock::now();
+		return std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer).count();
 	}
-	std::cout<<"seq: " << seq_time << ", par: " << par_time << '\n';
+};
+
+TEST_F(benchmarking, cube_graph){
+
+	for (int side = 50; side <= 350; side += 50){
+		int seq_time = 0, par_time = 0;
+		for (int i = 0; i < ITER; i++){
+			auto graph = generate_cubed_graph(side);
+			seq_time += calc_time(graph, seq_bfs);
+			par_time += calc_time(graph, par_bfs);
+		}
+		std::cout << "cube sided: " << side << '\n';
+		std::cout << "seq: " << seq_time << ", par: " << par_time << '\n';
+	}
 }
