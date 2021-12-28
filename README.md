@@ -11,6 +11,11 @@
 ## Установка Google Tests
 * `git clone https://github.com/google/googletest.git <путь до папки с проектом>/parallel_qsort/tests/googletest`
 
+## Установка PCTL
+* `wget https://raw.githubusercontent.com/deepsea-inria/pctl/master/script/get.sh`
+* `chmod +x ./get.sh`
+* `./get.sh <путь до папки с проектом>/parallel_algorithms-hw`
+
 ## Запуск
 Компиляция проекта производится из директории с использованием `CMake`
 * `CC=cilk/bin/clang CXX=cilk/bin/clang++ cmake .`
