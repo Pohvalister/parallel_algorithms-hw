@@ -2,7 +2,7 @@
 Реализация non determenistic parallel BFS алгоритма. 
 BFS представлен в виде функции `parallel_bfs`, принимающей на вход список смежности графа, начальную вершину и возвращающей вектор расстояний до всех вершин
 
-Для работы алгоритма использовались примитивы библиотеки PCTL - `parray`, `parallel_for`, `scan`, `filter`
+Для работы алгоритма использовались примитивы библиотеки [PCTL](https://github.com/deepsea-inria/pctl/) - `parray`, `parallel_for`, `scan`, `filter`
 
 Псевдокод
 ```
